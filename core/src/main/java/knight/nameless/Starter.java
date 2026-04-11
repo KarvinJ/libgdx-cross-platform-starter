@@ -2,6 +2,7 @@ package knight.nameless;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
 import com.badlogic.gdx.graphics.Texture;
@@ -9,7 +10,9 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 import com.badlogic.gdx.graphics.g2d.TextureRegion;
 import com.badlogic.gdx.graphics.glutils.ShapeRenderer;
+import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.math.Rectangle;
+import com.badlogic.gdx.math.Vector2;
 import com.badlogic.gdx.math.Vector3;
 import com.badlogic.gdx.utils.ScreenUtils;
 import com.badlogic.gdx.utils.viewport.ExtendViewport;
@@ -21,21 +24,45 @@ public class Starter extends ApplicationAdapter {
     public ExtendViewport viewport;
     private ShapeRenderer shapeRenderer;
     private SpriteBatch batch;
-    private Rectangle rectangle;
+    private Rectangle player;
+    private Rectangle ball;
+    private Vector2 ballVelocity;
     private BitmapFont font;
     private Texture fontTexture;
+    private Sound sound;
+    private Color[] colors;
+    private int colorIndex;
+    private int score;
 
     @Override
     public void create() {
 
-        shapeRenderer = new ShapeRenderer(); //Define the specific renderer for shapes
-        rectangle = new Rectangle(SCREEN_WIDTH / 2f,SCREEN_HEIGHT / 2f,64,64); //Define rectangle
-
         batch = new SpriteBatch();
+        shapeRenderer = new ShapeRenderer();
+
         fontTexture = new Texture("fonts/test.png");
         fontTexture.setFilter(Texture.TextureFilter.Linear, Texture.TextureFilter.Linear);
         font = new BitmapFont(Gdx.files.internal("fonts/test.fnt"), new TextureRegion(fontTexture));
         font.getData().scale(2f);
+
+        sound = Gdx.audio.newSound(Gdx.files.internal("sounds/magic.wav"));
+
+        player = new Rectangle(SCREEN_WIDTH / 2f,SCREEN_HEIGHT / 2f,64,64); //Define rectangle
+        ball = new Rectangle(100, 100, 32, 32);
+        ballVelocity = new Vector2(400, 400);
+
+        colors = new Color[]{
+            Color.RED,
+            Color.GREEN,
+            Color.BLUE,
+            Color.CORAL,
+            Color.GOLD,
+            Color.CYAN,
+            Color.FOREST,
+            Color.PURPLE,
+            Color.LIGHT_GRAY,
+            Color.VIOLET,
+        };
 
         camera = new OrthographicCamera();
         camera.position.set(SCREEN_WIDTH / 2f, SCREEN_HEIGHT / 2f, 0);
@@ -53,13 +80,41 @@ public class Starter extends ApplicationAdapter {
         var mouseBounds = new Rectangle(worldCoordinates.x, worldCoordinates.y, 2, 2);
 
         if (Gdx.input.isTouched())
-            rectangle.setPosition(mouseBounds.x, mouseBounds.y);
+            player.setPosition(mouseBounds.x, mouseBounds.y);
+    }
+
+    private void update() {
+
+        float deltaTime = Gdx.graphics.getDeltaTime();
+
+        touchControllers();
+
+        if (ball.x < 0 || ball.x > SCREEN_WIDTH - ball.width) {
+
+            ballVelocity.x *= -1;
+            colorIndex = MathUtils.random(0, colors.length - 1);
+        }
+        else if (ball.y < 0 || ball.y > SCREEN_HEIGHT - ball.height) {
+
+            ballVelocity.y *= -1;
+            colorIndex = MathUtils.random(0, colors.length - 1);
+        }
+
+        if (player.overlaps(ball)) {
+
+            ballVelocity.scl(-1);
+            score++;
+            sound.play();
+        }
+
+        ball.x += (int)(ballVelocity.x * deltaTime);
+        ball.y += (int)(ballVelocity.y * deltaTime);
     }
 
     @Override
     public void render() {
 
-        touchControllers();
+        update();
 
         ScreenUtils.clear(Color.BLACK);
 
@@ -67,13 +122,16 @@ public class Starter extends ApplicationAdapter {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
         shapeRenderer.setColor(Color.WHITE);
-        shapeRenderer.rect(rectangle.x, rectangle.y, rectangle.width, rectangle.height);
+        shapeRenderer.rect(player.x, player.y, player.width, player.height);
+
+        shapeRenderer.setColor(colors[colorIndex]);
+        shapeRenderer.rect(ball.x, ball.y, ball.width, ball.height);
 
         shapeRenderer.end();
 
         batch.setProjectionMatrix(viewport.getCamera().combined);
         batch.begin();
-        font.draw(batch, "(" + (int) rectangle.x + ", " + (int) rectangle.y + ")", 450, SCREEN_HEIGHT - 25);
+        font.draw(batch, String.valueOf(score), SCREEN_WIDTH / 2f - 150, SCREEN_HEIGHT - 25);
         batch.end();
     }
 
@@ -82,6 +140,7 @@ public class Starter extends ApplicationAdapter {
 
         font.dispose();
         fontTexture.dispose();
+        sound.dispose();
         shapeRenderer.dispose();
         batch.dispose();
     }
