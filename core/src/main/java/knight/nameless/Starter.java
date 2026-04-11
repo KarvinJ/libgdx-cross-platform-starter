@@ -2,6 +2,7 @@ package knight.nameless;
 
 import com.badlogic.gdx.ApplicationAdapter;
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Input;
 import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.OrthographicCamera;
@@ -24,7 +25,8 @@ public class Starter extends ApplicationAdapter {
     public ExtendViewport viewport;
     private ShapeRenderer shapeRenderer;
     private SpriteBatch batch;
-    private Rectangle player;
+    private Texture playerTexture;
+    private Rectangle playerBounds;
     private Rectangle ball;
     private Vector2 ballVelocity;
     private BitmapFont font;
@@ -47,7 +49,14 @@ public class Starter extends ApplicationAdapter {
 
         sound = Gdx.audio.newSound(Gdx.files.internal("sounds/magic.wav"));
 
-        player = new Rectangle(SCREEN_WIDTH / 2f,SCREEN_HEIGHT / 2f,64,64); //Define rectangle
+        playerTexture = new Texture("img/redbird.png");
+        playerBounds = new Rectangle(
+            SCREEN_WIDTH / 2f,
+            SCREEN_HEIGHT / 2f,
+            playerTexture.getWidth() * 2,
+            playerTexture.getHeight() * 2
+        );
+
         ball = new Rectangle(100, 100, 32, 32);
         ballVelocity = new Vector2(400, 400);
 
@@ -80,12 +89,31 @@ public class Starter extends ApplicationAdapter {
         var mouseBounds = new Rectangle(worldCoordinates.x, worldCoordinates.y, 2, 2);
 
         if (Gdx.input.isTouched())
-            player.setPosition(mouseBounds.x, mouseBounds.y);
+            playerBounds.setPosition(mouseBounds.x, mouseBounds.y);
+    }
+
+    private void keyboardControllers(float deltaTime) {
+
+        final int playerSpeed = 600;
+
+        if (Gdx.app.getInput().isKeyPressed(Input.Keys.W) && playerBounds.y < SCREEN_HEIGHT - playerBounds.height)
+            playerBounds.y += playerSpeed * deltaTime;
+
+        if (Gdx.app.getInput().isKeyPressed(Input.Keys.S) && playerBounds.y > 0)
+            playerBounds.y -= playerSpeed * deltaTime;
+
+        if (Gdx.app.getInput().isKeyPressed(Input.Keys.D) && playerBounds.x < SCREEN_WIDTH - playerBounds.width)
+            playerBounds.x += playerSpeed * deltaTime;
+
+        if (Gdx.app.getInput().isKeyPressed(Input.Keys.A) && playerBounds.x > 0)
+            playerBounds.x -= playerSpeed * deltaTime;
     }
 
     private void update() {
 
         float deltaTime = Gdx.graphics.getDeltaTime();
+
+        keyboardControllers(deltaTime);
 
         touchControllers();
 
@@ -100,7 +128,7 @@ public class Starter extends ApplicationAdapter {
             colorIndex = MathUtils.random(0, colors.length - 1);
         }
 
-        if (player.overlaps(ball)) {
+        if (playerBounds.overlaps(ball)) {
 
             ballVelocity.scl(-1);
             score++;
@@ -122,7 +150,6 @@ public class Starter extends ApplicationAdapter {
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
 
         shapeRenderer.setColor(Color.WHITE);
-        shapeRenderer.rect(player.x, player.y, player.width, player.height);
 
         shapeRenderer.setColor(colors[colorIndex]);
         shapeRenderer.rect(ball.x, ball.y, ball.width, ball.height);
@@ -131,7 +158,11 @@ public class Starter extends ApplicationAdapter {
 
         batch.setProjectionMatrix(viewport.getCamera().combined);
         batch.begin();
+
+        batch.draw(playerTexture, playerBounds.x, playerBounds.y, playerBounds.width, playerBounds.height);
+
         font.draw(batch, String.valueOf(score), SCREEN_WIDTH / 2f - 150, SCREEN_HEIGHT - 25);
+
         batch.end();
     }
 
@@ -139,6 +170,7 @@ public class Starter extends ApplicationAdapter {
     public void dispose() {
 
         font.dispose();
+        playerTexture.dispose();
         fontTexture.dispose();
         sound.dispose();
         shapeRenderer.dispose();
