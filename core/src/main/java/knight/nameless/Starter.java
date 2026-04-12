@@ -135,6 +135,13 @@ public class Starter extends ApplicationAdapter {
             sound.play();
         }
 
+        if (ball.x > SCREEN_WIDTH || ball.x < - ball.width || ball.y > SCREEN_HEIGHT || ball.y < - ball.height) {
+
+            ball.x = SCREEN_WIDTH / 2f;
+            ball.y = SCREEN_HEIGHT / 2f;
+            ballVelocity.scl(-1);
+        }
+
         ball.x += (int)(ballVelocity.x * deltaTime);
         ball.y += (int)(ballVelocity.y * deltaTime);
     }
@@ -161,6 +168,8 @@ public class Starter extends ApplicationAdapter {
 
         batch.draw(playerTexture, playerBounds.x, playerBounds.y, playerBounds.width, playerBounds.height);
 
+        int fps = Gdx.graphics.getFramesPerSecond();
+        font.draw(batch, String.valueOf(fps), 150, SCREEN_HEIGHT - 25);
         font.draw(batch, String.valueOf(score), SCREEN_WIDTH / 2f - 150, SCREEN_HEIGHT - 25);
 
         batch.end();
