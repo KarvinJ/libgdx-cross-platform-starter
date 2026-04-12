@@ -155,9 +155,7 @@ public class Starter extends ApplicationAdapter {
 
         shapeRenderer.setProjectionMatrix(viewport.getCamera().combined);
         shapeRenderer.begin(ShapeRenderer.ShapeType.Filled);
-
-        shapeRenderer.setColor(Color.WHITE);
-
+        
         shapeRenderer.setColor(colors[colorIndex]);
         shapeRenderer.rect(ball.x, ball.y, ball.width, ball.height);
 
