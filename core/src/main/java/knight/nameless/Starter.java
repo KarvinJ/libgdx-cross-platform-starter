@@ -21,8 +21,8 @@ import com.badlogic.gdx.utils.viewport.ExtendViewport;
 public class Starter extends ApplicationAdapter {
     private final int SCREEN_WIDTH = 1360;
     private final int SCREEN_HEIGHT = 768;
-    public OrthographicCamera camera;
-    public ExtendViewport viewport;
+    private OrthographicCamera camera;
+    private ExtendViewport viewport;
     private ShapeRenderer shapeRenderer;
     private SpriteBatch batch;
     private Texture playerTexture;
